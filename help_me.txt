@@ -1,0 +1,35 @@
+MINI SHOPPING CART HELP
+
+Main menu:
+- [B] Browse products
+- [V] View, edit, remove, or check out cart items
+- [P] Update stock or manage products
+- [H] Show this help screen
+- [Q] Quit the system
+
+Browsing products:
+- The catalog displays each product's code, name, price, and available stock.
+- Choose [A] to add a product to the cart, then enter its code and quantity.
+- Choose [Q] to return to the main menu.
+- The requested quantity must be positive and cannot exceed available stock.
+
+Shopping cart:
+- [C] Check out the cart.
+- [E] Edit an item's quantity. Set it to 0 to remove the item.
+- [R] Remove an item.
+- [Q] Return to the main menu.
+
+Checkout:
+- A subtotal of at least ₱100 receives a 10% discount.
+- You can also request the 20% senior/PWD/student discount.
+- Discounts are applied in order, one after another.
+- Enter payment when prompted. Insufficient payment is rejected.
+- Product stock is reduced and the cart is cleared after successful checkout.
+
+Product and stock management:
+- From the main menu, choose [P].
+- [E] Replace the stock quantity for a product.
+- [A] Add a product with a unique code, name, price, and stock.
+- [R] Remove a product after confirming.
+- [Q] Return to the main menu.
+- Stock and price must be non-negative values. Product names and codes cannot be blank.

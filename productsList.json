@@ -1,0 +1,62 @@
+[
+	{
+		"Name": "Wheat Bread 600g",
+		"Price": 90,
+		"Stock": 999,
+		"Code": "BWB6"
+	},
+	{
+		"Name": "Wheat Bread 400g",
+		"Price": 70,
+		"Stock": 999,
+		"Code": "BWB4"
+	},
+	{
+		"Name": "Plain Bread 600g",
+		"Price": 80,
+		"Stock": 999,
+		"Code": "BPB6"
+	},
+	{
+		"Name": "Plain Bread 400g",
+		"Price": 65,
+		"Stock": 999,
+		"Code": "BPB4"
+	},
+	{
+		"Name": "Milk Bread 400g",
+		"Price": 70,
+		"Stock": 999,
+		"Code": "BMB4"
+	},
+	{
+		"Name": "Yogurt 5x100ml",
+		"Price": 57,
+		"Stock": 999,
+		"Code": "DDD5"
+	},
+	{
+		"Name": "Yogurt 400ml",
+		"Price": 52,
+		"Stock": 999,
+		"Code": "DDD4"
+	},
+	{
+		"Name": "PeanutButter500ml",
+		"Price": 80,
+		"Stock": 999,
+		"Code": "SPB5"
+	},
+	{
+		"Name": "PeanutButter250ml",
+		"Price": 50,
+		"Stock": 999,
+		"Code": "SPB2"
+	},
+	{
+		"Name": "StrwberryJam200ml",
+		"Price": 70,
+		"Stock": 0,
+		"Code": "SSJ2"
+	}
+]
