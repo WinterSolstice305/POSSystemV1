@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -15,27 +16,29 @@ import modifyShoppingCart
 import otherUtils
 
 # Constants
-XSIZE = 55
+XSIZE = 120
 XSIZE2 = XSIZE // 2
 XSIZE3 = XSIZE // 3
 XSIZE4 = XSIZE // 4
 FILL1 = "-"
 FILL2 = "="
+SALES_REPORT_FILE = Path(__file__).with_name("salesReport.json")
 
 
 def main() -> None:
 	while True:
-		title_bar("MINI SHOPPING CART", XSIZE, FILL1)
+		title_bar("PERFUME STORE", XSIZE, FILL1)
 		print(
 			"Available Actions\n",
 			"[B] Browse products\n",
 			"[V] View and Checkout or Modify cart\n",
 			"[P] Update product stock \n",
 			"[H] Show the Help manual for this system\n",
+			"[S] Show Current Sales Report\n",
 			"[Q] Quit this system.\n",
 			"-" * XSIZE,
 		)
-		user_answer = otherUtils.ansCage(["B", "V", "P", "H", "Q"], "Choice?: ", 0)
+		user_answer = otherUtils.ansCage(["B", "V", "P", "H", "S", "Q"], "Choice?: ", 0)
 		match user_answer:
 			case "B":
 				display_products()
@@ -45,6 +48,8 @@ def main() -> None:
 				update_stock()
 			case "H":
 				display_help()
+			case "S":
+				showSalesReport()
 			case "Q":
 				print("Exiting....")
 				sys.exit()
@@ -223,6 +228,17 @@ def display_receipt():
 		print("Checkout cancelled....")
 		return
 
+	sales_report = _load_sales_report()
+	sales_report.append(
+		{
+			"Total Items Sold": sum(int(item["Stock"]) for item in shopping_cart),
+			"Gross Sales": subtotal,
+			"Total Discounts": total_discount,
+			"Net Sales": total_total,
+		}
+	)
+	_save_sales_report(sales_report)
+
 	modifyShoppingCart.empty_cart()
 	print("Thank you for your patronage!")
 	
@@ -337,6 +353,46 @@ def update_stock() -> None:
 				return
 			case _:
 				print("Invalid Value!")
+
+
+def showSalesReport() -> None:
+	sales_report = _load_sales_report()
+	total_items_sold = sum(int(transaction["Total Items Sold"]) for transaction in sales_report)
+	gross_sales = sum(float(transaction["Gross Sales"]) for transaction in sales_report)
+	total_discounts = sum(float(transaction["Total Discounts"]) for transaction in sales_report)
+	net_sales = sum(float(transaction["Net Sales"]) for transaction in sales_report)
+
+	title_bar("SALES REPORT", XSIZE, FILL1)
+	print(f"{'Total Transactions':<{XSIZE2}} {len(sales_report)}")
+	print(f"{'Total Items Sold':<{XSIZE2}} {total_items_sold}")
+	print(f"{'Gross Sales':<{XSIZE2}} ₱{gross_sales:.2f}")
+	print(f"{'Total Discounts':<{XSIZE2}} ₱{total_discounts:.2f}")
+	print(f"{'Net Sales':<{XSIZE2}} ₱{net_sales:.2f}")
+
+	reset_confirmation = input("Reset sales report? (Y/N) (default: N): ").strip().casefold()
+	if reset_confirmation == "y":
+		resetSalesReport()
+		print("Sales report reset.")
+
+
+def resetSalesReport() -> None:
+	_save_sales_report([])
+
+
+def _load_sales_report() -> list[dict[str, int | float]]:
+	if not SALES_REPORT_FILE.exists():
+		return []
+
+	with SALES_REPORT_FILE.open("r", encoding="utf-8") as file:
+		sales_report = json.load(file)
+	if not isinstance(sales_report, list):
+		raise ValueError("Sales report must contain a JSON array.")
+	return sales_report
+
+
+def _save_sales_report(sales_report: list[dict[str, int | float]]) -> None:
+	with SALES_REPORT_FILE.open("w", encoding="utf-8") as file:
+		json.dump(sales_report, file, indent="\t")
 
 
 def calculate_subtotal(num_list):

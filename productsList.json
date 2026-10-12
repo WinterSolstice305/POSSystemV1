@@ -1,62 +1,62 @@
 [
-    {
-        "Name": "Floral Perfume 100ml",
-        "Price": 450,
-        "Stock": 999,
-        "Code": "PFP1"
-    },
-    {
-        "Name": "Citrus Perfume 100ml",
-        "Price": 400,
-        "Stock": 999,
-        "Code": "PCP1"
-    },
-    {
-        "Name": "Woody Perfume 100ml",
-        "Price": 500,
-        "Stock": 999,
-        "Code": "PWP1"
-    },
-    {
-        "Name": "Fresh Perfume 100ml",
-        "Price": 350,
-        "Stock": 999,
-        "Code": "PFR1"
-    },
-    {
-        "Name": "Vanilla Perfume 100ml",
-        "Price": 480,
-        "Stock": 999,
-        "Code": "PVP1"
-    },
-    {
-        "Name": "Rose Perfume 50ml",
-        "Price": 280,
-        "Stock": 999,
-        "Code": "PRP5"
-    },
-    {
-        "Name": "Ocean Perfume 50ml",
-        "Price": 250,
-        "Stock": 999,
-        "Code": "POP5"
-    },
-    {
-        "Name": "Lavender Perfume 50ml",
-        "Price": 300,
-        "Stock": 999,
-        "Code": "PLP5"
-    },
-    {
-        "Name": "Musk Perfume 30ml",
-        "Price": 180,
-        "Stock": 999,
-        "Code": "PMP3"
-    },
-    {
-        "Name": "Jasmine Perfume 30ml",
-        "Price": 160,
-        "Stock": 0,
-        "Code": "PJP3"
-    }
+	{
+		"Name": "Floral Perfume 100ml",
+		"Price": 450,
+		"Stock": 999,
+		"Code": "PFP1"
+	},
+	{
+		"Name": "Citrus Perfume 100ml",
+		"Price": 400,
+		"Stock": 999,
+		"Code": "PCP1"
+	},
+	{
+		"Name": "Woody Perfume 100ml",
+		"Price": 500,
+		"Stock": 999,
+		"Code": "PWP1"
+	},
+	{
+		"Name": "Fresh Perfume 100ml",
+		"Price": 350,
+		"Stock": 999,
+		"Code": "PFR1"
+	},
+	{
+		"Name": "Vanilla Perfume 100ml",
+		"Price": 480,
+		"Stock": 999,
+		"Code": "PVP1"
+	},
+	{
+		"Name": "Rose Perfume 50ml",
+		"Price": 280,
+		"Stock": 999,
+		"Code": "PRP5"
+	},
+	{
+		"Name": "Ocean Perfume 50ml",
+		"Price": 250,
+		"Stock": 999,
+		"Code": "POP5"
+	},
+	{
+		"Name": "Lavender Perfume 50ml",
+		"Price": 300,
+		"Stock": 999,
+		"Code": "PLP5"
+	},
+	{
+		"Name": "Musk Perfume 30ml",
+		"Price": 180,
+		"Stock": 999,
+		"Code": "PMP3"
+	},
+	{
+		"Name": "Jasmine Perfume 30ml",
+		"Price": 160,
+		"Stock": 0,
+		"Code": "PJP3"
+	}
 ]

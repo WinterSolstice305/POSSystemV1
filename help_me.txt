@@ -5,6 +5,7 @@ Main menu:
 - [V] View, edit, remove, or check out cart items
 - [P] Update stock or manage products
 - [H] Show this help screen
+- [S] Show the current sales report
 - [Q] Quit the system
 
 Browsing products:

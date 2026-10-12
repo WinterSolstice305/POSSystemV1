@@ -8,6 +8,7 @@ A command-line point-of-sale and inventory application. The program keeps its pr
 - Edit cart quantities, remove cart items, and check out.
 - Calculate a subtotal, sequential discounts, and change due.
 - Decrease inventory after a successful checkout.
+- Track and display sales report totals, with a function to reset the report.
 - Edit stock, add products, and remove products from the catalog.
 - Display the end-user help sheet from the main menu.
 
@@ -30,6 +31,7 @@ The main menu accepts:
 | `V` | View or modify the cart, or check out |
 | `P` | Update product stock and manage catalog entries |
 | `H` | Show the help sheet |
+| `S` | Show the current sales report |
 | `Q` | Quit |
 
 ## Project layout
@@ -42,6 +44,7 @@ The main menu accepts:
 | `otherUtils.py` | Shared input prompts and validation modes. |
 | `productsList.json` | Product catalog and on-hand stock. |
 | `shoppingCart.json` | Current cart; persists between program runs. |
+| `salesReport.json` | Completed checkout totals used to calculate the sales report. |
 | `help_me.txt` | User-facing help text printed by the `H` action. Keep its menu keys in sync with `main.py`. |
 
 ## Data formats
@@ -58,6 +61,8 @@ Both data files contain JSON arrays of objects. Keep each product's `Code` uniqu
   "Stock": 997
 }
 ```
+
+Each successful checkout is stored in `salesReport.json` with its item count, gross sales, discounts, and net sales. The `S` main-menu action displays the totals across all recorded checkouts and prompts for confirmation before clearing the report. Enter `YES` to reset it; any other response, including pressing Enter, leaves it unchanged.
 
 `Code` and `Name` are strings. `Price` and `Stock` are integer values. The current catalog-management prompts accept non-negative numeric input and store it as an integer. Product codes entered through the add-product workflow are trimmed and uppercased.
 
