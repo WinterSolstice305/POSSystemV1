@@ -1,36 +1,44 @@
 MINI SHOPPING CART HELP
 
 Main menu:
-- [B] Browse products
+- [1] Product management (add, edit, delete, view, search, or update stock)
+- [2] Start a new transaction
+- [3] View products
+- [4] Search products by code or name
+- [5] Show the current sales report
+- [6] Exit
 - [V] View, edit, remove, or check out cart items
-- [P] Update stock or manage products
 - [H] Show this help screen
-- [S] Show the current sales report
-- [Q] Quit the system
 
-Browsing products:
+New transaction:
+- Browse the catalog and add one or more products to the cart.
+- After browsing, choose [Q] to continue to the cart and checkout.
+- The product code and requested quantity are checked against available stock.
+
+Viewing products:
 - The catalog displays each product's code, name, price, and available stock.
-- Choose [A] to add a product to the cart, then enter its code and quantity.
-- Choose [Q] to return to the main menu.
-- The requested quantity must be positive and cannot exceed available stock.
+- This menu only displays the catalog; choose [2] to start a transaction and add products.
+
+Searching products:
+- Enter any part of a product code or name; matching is case-insensitive.
 
 Shopping cart:
 - [C] Check out the cart.
-- [E] Edit an item's quantity. Set it to 0 to remove the item.
+- [E] Edit an item's quantity without exceeding available stock. Set it to 0 to remove the item.
 - [R] Remove an item.
 - [Q] Return to the main menu.
 
 Checkout:
-- A subtotal of at least ₱100 receives a 10% discount.
-- You can also request the 20% senior/PWD/student discount.
-- Discounts are applied in order, one after another.
+- Choose one discount: none, student (10%), senior citizen (20%), or PWD (20%).
+- The receipt shows the transaction number, date, products, quantities, prices, subtotal, discount, total, payment, and change.
 - Enter payment when prompted. Insufficient payment is rejected.
 - Product stock is reduced and the cart is cleared after successful checkout.
 
 Product and stock management:
-- From the main menu, choose [P].
-- [E] Replace the stock quantity for a product.
+- From the main menu, choose [1].
 - [A] Add a product with a unique code, name, price, and stock.
-- [R] Remove a product after confirming.
-- [Q] Return to the main menu.
+- [E] Edit a product's name or price.
+- [U] Update a product's stock.
+- [R] Delete a product after confirming.
+- [V] View products, [S] Search products, or [Q] Return to the main menu.
 - Stock and price must be non-negative values. Product names and codes cannot be blank.

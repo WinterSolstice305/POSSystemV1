@@ -5,8 +5,12 @@
 from __future__ import annotations
 
 import json
+import math
 import sys
+from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 if hasattr(sys.stdout, "reconfigure"):
 	sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -16,7 +20,7 @@ import modifyShoppingCart
 import otherUtils
 
 # Constants
-XSIZE = 120
+XSIZE = 90
 XSIZE2 = XSIZE // 2
 XSIZE3 = XSIZE // 3
 XSIZE4 = XSIZE // 4
@@ -25,36 +29,95 @@ FILL2 = "="
 SALES_REPORT_FILE = Path(__file__).with_name("salesReport.json")
 
 
+@dataclass
+class Transaction:
+	items: list[dict[str, Any]]
+	discount_name: str = "No Discount"
+	discount_rate: float = 0.0
+	payment: float = 0.0
+
+	@property
+	def subtotal(self) -> float:
+		return calculate_subtotal(
+			[float(item["Price"]) * int(item["Stock"]) for item in self.items]
+		)
+
+	@property
+	def discount(self) -> float:
+		return self.subtotal * self.discount_rate
+
+	@property
+	def total(self) -> float:
+		return calculate_total(self.subtotal, self.discount)
+
+
 def main() -> None:
 	while True:
 		title_bar("PERFUME STORE", XSIZE, FILL1)
 		print(
 			"Available Actions\n",
-			"[B] Browse products\n",
-			"[V] View and Checkout or Modify cart\n",
-			"[P] Update product stock \n",
+			"[M] Product Management\n",
+			"[N] New Transaction\n",
+			"[V] View Products\n",
+			"[S] Search Product\n",
+			"[R] Sales Report\n",
+			"[Q] Exit\n",
+			"[C] View or modify cart\n",
 			"[H] Show the Help manual for this system\n",
-			"[S] Show Current Sales Report\n",
-			"[Q] Quit this system.\n",
 			"-" * XSIZE,
 		)
-		user_answer = otherUtils.ansCage(["B", "V", "P", "H", "S", "Q"], "Choice?: ", 0)
+		user_answer = otherUtils.ansCage(
+			["M", "N", "V", "S", "R", "Q", "C", "H"], "Choice?: ", 0
+		)
 		match user_answer:
-			case "B":
-				display_products()
-			case "V":
-				checkout_cart()
-			case "P":
+			case "M":
 				update_stock()
-			case "H":
-				display_help()
+			case "N":
+				display_products()
+				if modifyShoppingCart.load_cart():
+					checkout_cart()
+			case "V":
+				view_products()
 			case "S":
+				search_products()
+			case "R":
 				showSalesReport()
 			case "Q":
 				print("Exiting....")
 				sys.exit()
-			case _:
-				print("Invalid Value. Please choose from the choices given")
+			case "C":
+				checkout_cart()
+			case "H":
+				display_help()
+
+
+def view_products(products: list[dict[str, Any]] | None = None) -> None:
+	if products is None:
+		products = modifyProductList.load_products()
+	title_bar("AVAILABLE PRODUCTS", XSIZE, FILL1)
+	if not products:
+		print("There are no products in the catalog.")
+		return
+	print(f"{'Item Code':<{XSIZE4}} {'Name':<{XSIZE4}} {'Price':<{XSIZE4}} {'Stock':<{XSIZE4}}")
+	for item in products:
+		print(f"{item['Code']:<{XSIZE4}} {item['Name']:<{XSIZE4}} ₱{item['Price']:<{XSIZE4}} {item['Stock']:<{XSIZE4}}")
+
+
+def search_products() -> None:
+	products = modifyProductList.load_products()
+	query = input("Enter a product code or name to search: ").strip().casefold()
+	if not query:
+		print("Search text cannot be empty.")
+		return
+	matches = [
+		item for item in products
+		if query in str(item.get("Code", "")).casefold()
+		or query in str(item.get("Name", "")).casefold()
+	]
+	if not matches:
+		print("No matching products found.")
+		return
+	view_products(matches)
 
 
 def display_help() -> None:
@@ -68,6 +131,9 @@ def display_help() -> None:
 
 def display_products() -> None:
 	product_list = modifyProductList.load_products()
+	if not product_list:
+		print("There are no products in the catalog.")
+		return
 
 	while True:
 		title_bar("AVAILABLE PRODUCTS", XSIZE, FILL1)
@@ -85,7 +151,7 @@ def display_products() -> None:
 		match user_answer:
 			case "A":
 				item_code = otherUtils.ansCage(product_codes, "Product Code", 2)
-				item_quantity = int(otherUtils.ansCage([], "How many will you add?", 1))
+				item_quantity = prompt_nonnegative_integer("How many will you add?")
 				add_to_cart(product_list, item_code, item_quantity)
 			case "Q":
 				break
@@ -165,8 +231,13 @@ def edit_cart_item():
 		print("Item not found in cart.")
 		return
 
-	current_quantity = int(relevant_item.get("Stock", 0))
-	new_quantity = int(otherUtils.ansCage([current_quantity], "Change to Quantity: ", 3))
+	product = modifyProductList.find_product(modifyProductList.load_products(), item_code)
+	if product is None:
+		print("This product is no longer in the catalog. Remove it from the cart.")
+		return
+
+	available_stock = int(product.get("Stock", 0))
+	new_quantity = int(otherUtils.ansCage([available_stock], "Change to Quantity: ", 3))
 
 	try:
 		modifyShoppingCart.edit_cart_item(item_code, new_quantity)
@@ -190,51 +261,64 @@ def remove_cart_item():
 def display_receipt():
 	shopping_cart = modifyShoppingCart.load_cart()
 	product_list = modifyProductList.load_products()
+	if not shopping_cart:
+		print("Error! The cart is empty.")
+		return
 
 	title_bar("RECEIPT", XSIZE, FILL2)
-	print(f"{'Item':<{XSIZE3}} {'Qty.':<{XSIZE3}} {'Cost':>{XSIZE3}}")
-
-	subtotal_prices = []
-	for item in shopping_cart:
-		unit_cost = float(item["Price"])
-		quantity = int(item["Stock"])
-		total_cost = unit_cost * quantity
-		print(f"{item['Name']:<{XSIZE3}} x{quantity:<{XSIZE3}} ₱{total_cost:.2f}")
-		subtotal_prices.append(total_cost)
-	print("".center(XSIZE, FILL1))
-
-	subtotal = calculate_subtotal(subtotal_prices)
-	discount_list = [
-		{"Name": "Above ₱100 Discount", "Discount%": 0.10, "Condition": int(subtotal >= 100)},
-		{"Name": "Senior/PWD/Student Discount", "Discount%": 0.20, "Condition": 0},
-	]
-
-	if otherUtils.ansCage(["Y", "N"], "Senior/PWD/Student discount?", 0) == "Y":
-		discount_list[1]["Condition"] = 1
-
-	print(f"{'Subtotal':<{XSIZE2}} ₱{subtotal:.2f}")
-	total_discount = calculate_discount(discount_list, subtotal)
-	total_total = calculate_total(subtotal, total_discount)
-	print(f"{'TOTAL':<{XSIZE2}} ₱{total_total:.2f}")
-
-	change = calculate_change(total_total)
-	print(f"{'Change:':<{XSIZE2}} ₱{change:.2f}")
-
+	transaction = Transaction(shopping_cart)
 	try:
-		updated_products = modifyProductList.update_products_from_cart(product_list, shopping_cart)
-		modifyProductList.save_products(updated_products)
+		updated_products = modifyProductList.update_products_from_cart(
+			[dict(item) for item in product_list], shopping_cart
+		)
 	except ValueError as error:
 		print(f"ERROR! {error}")
 		print("Checkout cancelled....")
 		return
 
 	sales_report = _load_sales_report()
+	print(f"Transaction No.: {len(sales_report) + 1:05d}")
+	print(f"Date: {datetime.now():%m/%d/%Y}")
+	print(f"{'Product':<{XSIZE3}} {'Qty.':>{XSIZE4}} {'Price':>{XSIZE4}} {'Amount':>{XSIZE4}}")
+	for item in shopping_cart:
+		unit_cost = float(item["Price"])
+		quantity = int(item["Stock"])
+		total_cost = unit_cost * quantity
+		print(
+			f"{item['Name']:<{XSIZE3}} {quantity:>{XSIZE4}} "
+			f"₱{unit_cost:>{XSIZE4}.2f} ₱{total_cost:>{XSIZE4}.2f}"
+		)
+	print("".center(XSIZE, FILL1))
+
+	discount_options = {
+		"N": ("No Discount", 0.0),
+		"S": ("Student Discount", 0.10),
+		"C": ("Senior Citizen Discount", 0.20),
+		"P": ("PWD Discount", 0.20),
+	}
+	print("Discount options: [N] No Discount, [S] Student (10%), [C] Senior Citizen (20%), [P] PWD (20%)")
+	discount_choice = otherUtils.ansCage(list(discount_options), "Choose discount", 0)
+	transaction.discount_name, transaction.discount_rate = discount_options[discount_choice]
+
+	print(f"{'Subtotal':<{XSIZE2}} ₱{transaction.subtotal:.2f}")
+	total_discount = transaction.discount
+	print(f"{transaction.discount_name:<{XSIZE2}} ₱{total_discount:.2f}")
+	total = transaction.total
+	print(f"{'TOTAL':<{XSIZE2}} ₱{total:.2f}")
+
+	transaction.payment = calculate_payment(total)
+	change = transaction.payment - total
+	print(f"{'Cash:':<{XSIZE2}} ₱{transaction.payment:.2f}")
+	print(f"{'Change:':<{XSIZE2}} ₱{change:.2f}")
+
+	modifyProductList.save_products(updated_products)
+
 	sales_report.append(
 		{
 			"Total Items Sold": sum(int(item["Stock"]) for item in shopping_cart),
-			"Gross Sales": subtotal,
+			"Gross Sales": transaction.subtotal,
 			"Total Discounts": total_discount,
-			"Net Sales": total_total,
+			"Net Sales": total,
 		}
 	)
 	_save_sales_report(sales_report)
@@ -242,32 +326,39 @@ def display_receipt():
 	modifyShoppingCart.empty_cart()
 	print("Thank you for your patronage!")
 	
+def prompt_nonnegative_integer(prompt: str) -> int:
+	while True:
+		try:
+			value = float(otherUtils.ansCage([], prompt, 1))
+			if value < 0 or not value.is_integer():
+				raise ValueError
+			return int(value)
+		except ValueError:
+			print("Please enter a non-negative whole number.")
+
+
 def update_stock() -> None:
 	while True:
 		product_list = modifyProductList.load_products()
-		title_bar("UPDATE STOCK", XSIZE, FILL1)
-
-		if not product_list:
-			print("There are no products in the catalog.")
-		else:
-			print(f"{'Item Code':<{XSIZE4}} {'Name':<{XSIZE4}} {'Price':<{XSIZE4}} {'Stock':<{XSIZE4}}")
-			for item in product_list:
-				print(f"{item['Code']:<{XSIZE4}} {item['Name']:<{XSIZE4}} ₱{item['Price']:<{XSIZE4}} {item['Stock']:<{XSIZE4}}")
-
+		title_bar("PRODUCT MANAGEMENT", XSIZE, FILL1)
+		view_products(product_list)
 		print("".center(XSIZE, FILL1))
 		print(
 			"Available Actions:\n",
-			"[E] Edit product stock\n",
 			"[A] Add product\n",
-			"[R] Remove product\n",
+			"[E] Edit product name or price\n",
+			"[U] Update product stock\n",
+			"[R] Delete product\n",
+			"[V] View products\n",
+			"[S] Search products\n",
 			"[Q] Go back\n",
 		)
 
-		user_choice = otherUtils.ansCage(["E", "A", "R", "Q"], "Choice: ", 0)
+		user_choice = otherUtils.ansCage(["A", "E", "U", "R", "V", "S", "Q"], "Choice: ", 0)
 		match user_choice:
-			case "E":
+			case "E" | "U":
 				if not product_list:
-					print("Error! There are no products to update.")
+					print("Error! There are no products to edit.")
 					continue
 
 				item_code = otherUtils.ansCage(modifyProductList.get_product_codes(product_list), "Product Code", 2)
@@ -276,18 +367,22 @@ def update_stock() -> None:
 					print("Product not found.")
 					continue
 
-				while True:
-					try:
-						new_stock = int(float(otherUtils.ansCage([], "New stock quantity: ", 1)))
-						if new_stock < 0:
-							raise ValueError
-						break
-					except ValueError:
-						print("Stock must be a non-negative number.")
-
-				product["Stock"] = new_stock
+				if user_choice == "U":
+					product["Stock"] = prompt_nonnegative_integer("New stock quantity")
+				else:
+					field = otherUtils.ansCage(["N", "P", "Q"], "Edit [N]ame, [P]rice, or [Q]uit", 0)
+					if field == "Q":
+						continue
+					if field == "N":
+						new_name = input(f"Product name [{product['Name']}]: ").strip()
+						if not new_name:
+							print("Product name cannot be empty.")
+							continue
+						product["Name"] = new_name
+					else:
+						product["Price"] = prompt_nonnegative_integer("New price")
 				modifyProductList.save_products(product_list)
-				print("Product stock updated!")
+				print("Product updated successfully!")
 			case "A":
 				product_name = input("Product Name: ").strip()
 				if not product_name:
@@ -304,23 +399,8 @@ def update_stock() -> None:
 						continue
 					break
 
-				while True:
-					try:
-						price = int(float(otherUtils.ansCage([], "Price: ", 1)))
-						if price < 0:
-							raise ValueError
-						break
-					except ValueError:
-						print("Price must be a non-negative number.")
-
-				while True:
-					try:
-						stock = int(float(otherUtils.ansCage([], "Stock: ", 1)))
-						if stock < 0:
-							raise ValueError
-						break
-					except ValueError:
-						print("Stock must be a non-negative number.")
+				price = prompt_nonnegative_integer("Price")
+				stock = prompt_nonnegative_integer("Stock")
 
 				product_list.append({
 					"Name": product_name,
@@ -348,11 +428,13 @@ def update_stock() -> None:
 
 				product_list = [item for item in product_list if item.get("Code") != item_code]
 				modifyProductList.save_products(product_list)
-				print("Product removed successfully!")
+				print("Product deleted successfully!")
+			case "V":
+				view_products(product_list)
+			case "S":
+				search_products()
 			case "Q":
 				return
-			case _:
-				print("Invalid Value!")
 
 
 def showSalesReport() -> None:
@@ -417,14 +499,23 @@ def calculate_total(subtotal, total_discount):
 	return subtotal - total_discount
 
 
-def calculate_change(total):
+def calculate_payment(total):
 	while True:
-		payment = float(otherUtils.ansCage([], "Enter Payment", 1))
-		change = payment - total
-		if change < 0:
+		try:
+			payment = float(otherUtils.ansCage([], "Enter Payment", 1))
+		except ValueError:
+			continue
+		if not math.isfinite(payment):
+			print("Please enter a finite payment amount.")
+			continue
+		if payment < total:
 			print("Insufficient Payment!!!")
 			continue
-		return change
+		return payment
+
+
+def calculate_change(total):
+	return calculate_payment(total) - total
 
 
 def update_list_of_products(list_of_products, shopping_cart):

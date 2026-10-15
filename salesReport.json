@@ -4,5 +4,11 @@
 		"Gross Sales": 4230.0,
 		"Total Discounts": 1184.4,
 		"Net Sales": 3045.6
+	},
+	{
+		"Total Items Sold": 4,
+		"Gross Sales": 940.0,
+		"Total Discounts": 0.0,
+		"Net Sales": 940.0
 	}
 ]

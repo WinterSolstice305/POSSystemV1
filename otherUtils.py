@@ -56,11 +56,14 @@ def ansCageMode2(choices1: list | dict, query: str):
 
 
 def ansCageMode3(choices1: list | dict, query: str):
-    """Restrict input to a value not greater than a supplied max."""
+    """Restrict input to a whole number between zero and the supplied max."""
     limit = int(choices1[0])
     while True:
-        user_answer = int(ansCageMode1(f"(0 - {limit}) {query}"))
-        if user_answer > limit:
+        try:
+            value = float(ansCageMode1(f"(0 - {limit}) {query}"))
+        except ValueError:
+            continue
+        if not value.is_integer() or value < 0 or value > limit:
             print("Invalid Value!")
             continue
-        return user_answer
+        return int(value)

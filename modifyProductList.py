@@ -57,7 +57,7 @@ def update_products_from_cart(products: list[dict[str, Any]], cart: list[dict[st
         code = cart_item.get("Code")
         quantity = int(cart_item.get("Stock", 0))
         if code not in product_map:
-            continue
+            raise ValueError(f"Product {code} is no longer in the catalog.")
 
         product = product_map[code]
         product["Stock"] = int(product.get("Stock", 0)) - quantity

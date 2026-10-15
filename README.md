@@ -5,12 +5,14 @@ A command-line point-of-sale and inventory application. The program keeps its pr
 ## Capabilities
 
 - Browse the catalog and add products to a persistent cart.
+- Search products by a case-insensitive code or name.
 - Edit cart quantities, remove cart items, and check out.
-- Calculate a subtotal, sequential discounts, and change due.
+- Calculate a subtotal, one selected discount, payment, and change due.
 - Decrease inventory after a successful checkout.
 - Track and display sales report totals, with a function to reset the report.
-- Edit stock, add products, and remove products from the catalog.
+- Add, edit, delete, view, search, and update stock for catalog products.
 - Display the end-user help sheet from the main menu.
+- Print a receipt with transaction number, date, item prices, payment, and change.
 
 ## Requirements and launch
 
@@ -27,12 +29,14 @@ The main menu accepts:
 
 | Key | Action |
 | --- | --- |
-| `B` | Browse products |
+| `1` | Product management |
+| `2` | Start a new transaction |
+| `3` | View products |
+| `4` | Search products |
+| `5` | Show the current sales report |
+| `6` | Exit |
 | `V` | View or modify the cart, or check out |
-| `P` | Update product stock and manage catalog entries |
 | `H` | Show the help sheet |
-| `S` | Show the current sales report |
-| `Q` | Quit |
 
 ## Project layout
 
@@ -62,7 +66,7 @@ Both data files contain JSON arrays of objects. Keep each product's `Code` uniqu
 }
 ```
 
-Each successful checkout is stored in `salesReport.json` with its item count, gross sales, discounts, and net sales. The `S` main-menu action displays the totals across all recorded checkouts and prompts for confirmation before clearing the report. Enter `YES` to reset it; any other response, including pressing Enter, leaves it unchanged.
+Each successful checkout is stored in `salesReport.json` with its item count, gross sales, discounts, and net sales. The `5` main-menu action displays the totals across all recorded checkouts and prompts for confirmation before clearing the report. Enter `Y` to reset it; any other response, including pressing Enter, leaves it unchanged.
 
 `Code` and `Name` are strings. `Price` and `Stock` are integer values. The current catalog-management prompts accept non-negative numeric input and store it as an integer. Product codes entered through the add-product workflow are trimmed and uppercased.
 
@@ -80,15 +84,17 @@ A cart entry has the same product fields as the catalog entry. Its `Stock` field
 
 `checkout_cart()` offers `C` (checkout), `E` (edit quantity), `R` (remove item), and `Q` (return). Setting an edited quantity to zero removes the cart entry.
 
-`display_receipt()` calculates each line total and the subtotal. A subtotal of at least ₱100 qualifies for a 10% discount. The optional senior/PWD/student discount is 20%; discounts are applied in list order, so the second discount is calculated on the subtotal remaining after the first. The program requests payment, then deducts quantities from product stock and clears the cart after stock deduction succeeds.
+`display_receipt()` calculates each line total and the subtotal. The customer selects one discount: none, student (10%), senior citizen (20%), or PWD (20%). The program requests payment, then deducts quantities from product stock and clears the cart after stock deduction succeeds.
 
 ### Manage the catalog
 
-`update_stock()` displays the catalog and offers:
+`update_stock()` provides the product-management menu:
 
-- `E`: replace the stock quantity for an existing product.
 - `A`: add a product with a name, unique code, price, and stock.
-- `R`: remove a product after confirmation.
+- `E`: edit a product's name or price.
+- `U`: replace the stock quantity for an existing product.
+- `R`: delete a product after confirmation.
+- `V`: view products; `S`: search by code or name.
 - `Q`: return to the main menu.
 
 Catalog edits are saved through `modifyProductList.save_products()`. Stock and price must be non-negative; a product name and code cannot be blank, and new product codes cannot duplicate existing codes.
