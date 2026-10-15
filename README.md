@@ -29,14 +29,14 @@ The main menu accepts:
 
 | Key | Action |
 | --- | --- |
-| `1` | Product management |
-| `2` | Start a new transaction |
-| `3` | View products |
-| `4` | Search products |
-| `5` | Show the current sales report |
-| `6` | Exit |
-| `V` | View or modify the cart, or check out |
+| `M` | Product management |
+| `N` | Start a new transaction |
+| `V` | View products |
+| `S` | Search products by code or name |
+| `R` | Show the current sales report |
+| `C` | View or modify the cart, or check out |
 | `H` | Show the help sheet |
+| `Q` | Exit |
 
 ## Project layout
 
@@ -53,7 +53,7 @@ The main menu accepts:
 
 ## Data formats
 
-Both data files contain JSON arrays of objects. Keep each product's `Code` unique; cart operations and stock deduction use that code to find the matching catalog item.
+The product catalog, shopping cart, and sales report are JSON arrays of objects. Keep each product's `Code` unique; cart operations and stock deduction use that code to find the matching catalog item.
 
 ### Product entry (`productsList.json`)
 
@@ -66,9 +66,9 @@ Both data files contain JSON arrays of objects. Keep each product's `Code` uniqu
 }
 ```
 
-Each successful checkout is stored in `salesReport.json` with its item count, gross sales, discounts, and net sales. The `5` main-menu action displays the totals across all recorded checkouts and prompts for confirmation before clearing the report. Enter `Y` to reset it; any other response, including pressing Enter, leaves it unchanged.
+Each successful checkout is stored in `salesReport.json` with its item count, gross sales (the subtotal), discounts, and net sales (the amount due after discount). The `R` main-menu action displays totals across all recorded checkouts and prompts for confirmation before clearing the report. Enter `Y` to reset it; any other response, including pressing Enter, leaves it unchanged.
 
-`Code` and `Name` are strings. `Price` and `Stock` are integer values. The current catalog-management prompts accept non-negative numeric input and store it as an integer. Product codes entered through the add-product workflow are trimmed and uppercased.
+`Code` and `Name` are strings. `Price` and `Stock` are integer values. Catalog-management prompts accept non-negative whole-number input and store it as an integer. Product codes entered through the add-product workflow are trimmed and uppercased.
 
 ### Cart entry (`shoppingCart.json`)
 
@@ -76,19 +76,23 @@ A cart entry has the same product fields as the catalog entry. Its `Stock` field
 
 ## Main workflows
 
-### Browse and add to cart
+### Start a transaction and add products
 
-`display_products()` loads the catalog and offers `A` (add) or `Q` (return). The cart helper verifies that the product exists and that the requested quantity is positive and does not exceed the catalog stock. Adding a product already in the cart merges the quantity.
+Choose `N` from the main menu to start a transaction. `display_products()` shows the catalog and offers `A` (add to cart) or `Q` (finish browsing). Enter a product code and a positive whole-number quantity. The cart helper verifies that the product exists and that the requested quantity does not exceed available stock. Adding a product already in the cart merges the quantity. When browsing ends, the cart menu opens if the cart contains items.
+
+Choose `V` from the main menu to view the catalog without adding products. Choose `S` to search by any part of a product code or name; matching is case-insensitive.
 
 ### Modify cart and check out
 
-`checkout_cart()` offers `C` (checkout), `E` (edit quantity), `R` (remove item), and `Q` (return). Setting an edited quantity to zero removes the cart entry.
+Choose `C` from the main menu to open the cart. `checkout_cart()` offers `C` (checkout), `E` (edit quantity), `R` (remove item), and `Q` (return). Edited quantities must be whole numbers from zero through the product's available stock; setting a quantity to zero removes the cart entry.
 
-`display_receipt()` calculates each line total and the subtotal. The customer selects one discount: none, student (10%), senior citizen (20%), or PWD (20%). The program requests payment, then deducts quantities from product stock and clears the cart after stock deduction succeeds.
+`display_receipt()` prints a transaction number, date, product, quantity, unit price, line amount, and subtotal. The customer selects one discount: none, student (10%), senior citizen (20%), or PWD (20%). The program requires payment at least equal to the total and displays the payment and change. It then deducts quantities from product stock, records the sale, and clears the cart. If a cart product is no longer in the catalog or stock is insufficient, checkout is cancelled.
+
+Transaction numbers are based on the number of records in the sales report, so they can repeat after the report is reset.
 
 ### Manage the catalog
 
-`update_stock()` provides the product-management menu:
+Choose `M` from the main menu for product management. `update_stock()` provides these actions:
 
 - `A`: add a product with a name, unique code, price, and stock.
 - `E`: edit a product's name or price.
@@ -97,7 +101,7 @@ A cart entry has the same product fields as the catalog entry. Its `Stock` field
 - `V`: view products; `S`: search by code or name.
 - `Q`: return to the main menu.
 
-Catalog edits are saved through `modifyProductList.save_products()`. Stock and price must be non-negative; a product name and code cannot be blank, and new product codes cannot duplicate existing codes.
+Catalog edits are saved through `modifyProductList.save_products()`. Stock and price must be non-negative whole numbers; a product name and code cannot be blank, and new product codes cannot duplicate existing codes.
 
 ## Design and extension guidance
 
